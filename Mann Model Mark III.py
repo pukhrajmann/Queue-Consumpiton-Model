@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[41]:
-
-
 #Import necessary libraries
 import numpy as np
 import pandas as pd
@@ -12,8 +6,9 @@ import datetime
 from datetime import date
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
+%matplotlib inline
 
-def model(d2d_q,network_q):
+def model(d2d_q,network_q,end_date):
     from pandas.tseries.holiday import USFederalHolidayCalendar as cal
     #Today
     today = datetime.date.today()
@@ -23,7 +18,7 @@ def model(d2d_q,network_q):
     p2 = 10 #Jenna
     p3 = 2  #Amil
     p4 = 10 #Braxton
-    p5 = 15  #Bob
+    p5 = 0  #Bob
     p6 = 0  #Amber
     p7 = 0  #Will
     ptotal = p1+p2+p3+p4+p5+p6+p7
@@ -32,12 +27,15 @@ def model(d2d_q,network_q):
     network_open = 15
     d2d_open = 10
 
+    #d2d_q = 133
+    #network_q = 142
+
     #Capacity focus
-    network_switch = .5
+    network_switch = .25
     d2d_switch = 1 - network_switch
 
     #Business Days and Holdiday Check
-    dr = pd.bdate_range(start='today', end='2022-04-08')
+    dr = pd.bdate_range(start='today', end = end_date)
     df = pd.DataFrame()
     df['Date'] = dr
     cal = cal()
@@ -84,12 +82,17 @@ def model(d2d_q,network_q):
 
 #Function to show graphs
 def graph(some_list):
+    
+    #Setup figure sizes and colors
     plt.figure(figsize=(10,6))
     plt.bar(dr,some_list, color ='blue', width = 0.8)
-    plt.xticks(dr)
-    plt.xticks(rotation = 90)
+    plt.xticks(dr, rotation = 90)
+    
+    #Show value above each bar
     for i, v in enumerate(some_list):
-        plt.text(dr[i], v+0.5, str(v))
+        plt.text(dr[i], v*1.07, str(v))
+    
+    #Labels & Titles
     plt.xlabel('Date')
     plt.ylabel('Queue Running Total')
     if network_list == some_list:
@@ -98,22 +101,11 @@ def graph(some_list):
         plt.title('Day to Day Consumption Profile')
     plt.show()
 
+#Inputs
+#model(d2d_q,network_q,last date in model)
+model(141,63,'2022-04-29')
 
-# In[42]:
-
-
-model(168,23)
-
-
-# In[43]:
-
-
+#graphs
 graph(network_list)
 graph(d2d_list)
-
-
-# In[ ]:
-
-
-
 
