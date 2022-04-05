@@ -4,8 +4,7 @@ import pandas as pd
 from pandas.tseries.holiday import USFederalHolidayCalendar as cal
 import datetime
 from datetime import date
-import matplotlib.pyplot as plt
-from matplotlib.pyplot import figure
+import matplotlib.pylab as plt
 %matplotlib inline
 
 def model(d2d_q,network_q,end_date):
@@ -78,34 +77,40 @@ def model(d2d_q,network_q,end_date):
         network_list.append(network_q) 
         d2d_list.append(d2d_q)
         i += 1
-    return(network_list,d2d_list)
+    
+    for i in range(2):
+        if i<1:
+            some_list = [network_list 
+        else:
+            some_list = d2d_list
+        
+        #Setup figure sizes and colors
+        plt.figure(figsize=(10,6))
+        some_plot = plt.bar(dr,some_list, color ='blue', width = 0.8)
+        plt.xticks(dr, rotation = 90)
+        
+        #Show value above each bar
+        for i, v in enumerate(some_list):
+            plt.text(dr[i], v*1.1, str(v))
 
-#Function to show graphs
-def graph(some_list):
-    
-    #Setup figure sizes and colors
-    plt.figure(figsize=(10,6))
-    plt.bar(dr,some_list, color ='blue', width = 0.8)
-    plt.xticks(dr, rotation = 90)
-    
-    #Show value above each bar
-    for i, v in enumerate(some_list):
-        plt.text(dr[i], v*1.07, str(v))
-    
-    #Labels & Titles
-    plt.xlabel('Date')
-    plt.ylabel('Queue Running Total')
-    if network_list == some_list:
-        plt.title('Network Queue Consumption Profile')
-    else:
-        plt.title('Day to Day Consumption Profile')
-    plt.show()
+
+        #Labels & Titles
+        plt.xlabel('Date')
+        plt.ylabel('Queue Running Total')
+        
+        
+        if network_list == some_list:
+            plt.title('Network Queue Consumption Profile')
+            
+        else:
+            plt.title('Day to Day Consumption Profile')
+            
+        
+        #plt.bar_label(some_plot)
+        
+        #Display plot
+        plt.show()
 
 #Inputs
 #model(d2d_q,network_q,last date in model)
-model(141,63,'2022-04-29')
-
-#graphs
-graph(network_list)
-graph(d2d_list)
-
+model(150,75,'2022-5-01')
