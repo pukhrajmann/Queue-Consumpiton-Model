@@ -33,15 +33,17 @@ def model(d2d_q,network_q,end_date):
     network_switch = .25
     d2d_switch = 1 - network_switch
 
-    #Business Days and Holdiday Check
-    dr = pd.bdate_range(start='today', end = end_date)
+    #Create Business Days Calender
+    dr = pd.bdate_range(start='today', end = '5-21-2022')
+    
+    #Check for Holidays
     df = pd.DataFrame()
     df['Date'] = dr
     cal = cal()
     holidays = cal.holidays(start=dr.min(), end=dr.max())
     df['Holiday'] = df['Date'].isin(holidays)
     df["Check"] = df["Holiday"].astype(int)
-    x=0
+
 
     #convert dataframe to arrays
     total_array = df.to_numpy()
@@ -55,20 +57,36 @@ def model(d2d_q,network_q,end_date):
 
     #Queue Calc Loop
     for start in dr:
+        #Ensure first day is the queues no change
         if l < 1:
             l+=1
+        #Check to see if day not a holiday
         elif check_array[i] == 0:
+            #Daily close is 70% of total close rate. Why? 10% is dropped due to PTO, 20% due to BS coefficient
             daily_close = (ptotal)*.7
             network_q += network_open
             d2d_q += d2d_open
+            #Check to see if network queue is larger than resources allocated to network.  
             if network_q >= int(daily_close*network_switch):
                 network_q -= int(daily_close*network_switch)
                 d2d_q -= int(daily_close*d2d_switch)
+            #Check to see if network queue is smaller than resources allocated to network.
             elif network_q < int(daily_close*network_switch):
+                #Check to see if d2d queue is larger than resources allocated to d2d.
                 if d2d_q >= int(daily_close*network_switch):
                     d2d_q -= int(daily_close - network_q)
                     network_q -= network_q
+                #Check to see if d2d queue is smaller than resources allocated to d2d.
                 elif d2d_q < int(daily_close*network_switch):
+                    extra = int(daily_close - (d2d_q + network_q))
+                    d2d_q -= d2d_q
+                    network_q -= network_q
+            elif d2d_q < int(daily_close*d2d_switch):
+                if network_q >= int(daily_close*d2d_switch):
+                    network_q -= int(daily_close - d2d_q)
+                    d2d_q -= d2d_q
+                    
+                elif network_q < int(daily_close*network_switch):
                     extra = int(daily_close - (d2d_q + network_q))
                     d2d_q -= d2d_q
                     network_q -= network_q
@@ -77,18 +95,19 @@ def model(d2d_q,network_q,end_date):
         network_list.append(network_q) 
         d2d_list.append(d2d_q)
         i += 1
-    
+
+    #Loop for graphs
     for i in range(2):
         if i<1:
-            some_list = [network_list 
+            some_list = network_list
         else:
             some_list = d2d_list
-        
+
         #Setup figure sizes and colors
         plt.figure(figsize=(10,6))
         some_plot = plt.bar(dr,some_list, color ='blue', width = 0.8)
         plt.xticks(dr, rotation = 90)
-        
+
         #Show value above each bar
         for i, v in enumerate(some_list):
             plt.text(dr[i], v*1.1, str(v))
@@ -97,17 +116,17 @@ def model(d2d_q,network_q,end_date):
         #Labels & Titles
         plt.xlabel('Date')
         plt.ylabel('Queue Running Total')
-        
-        
+
+
         if network_list == some_list:
             plt.title('Network Queue Consumption Profile')
-            
+
         else:
             plt.title('Day to Day Consumption Profile')
-            
-        
+
+
         #plt.bar_label(some_plot)
-        
+
         #Display plot
         plt.show()
 
